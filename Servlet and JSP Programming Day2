@@ -1,0 +1,628 @@
+import java.rmi.server.ServerCloneException;
+
+public class ChainerFirst extends HttpServlet {
+
+  protected void service(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+    res.setContentType("text/html");
+    PrintWriter out = res.getWriter();
+    out.println("<HTML><TITLE>ChainerFirst</TITLE><BODY>");
+    out.println("<H2>Servlet API Example - ChainerFirst</H2><HR>");
+    out.println("<H4>font color=\"Red\"> This part of the output produced by
+      the first servlet.. </font></H4>");
+    
+  }
+}
+
+//
+public class ChainerSecond extends HttpServlet {
+
+  protected void service(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+    res.setContentType(req.getContentType());
+    PrintWriter out = res.getWriter();
+
+    BufferedReader in = req.getReader();
+    String line;
+    while ((line = in.readLine()) != null) {
+      out.println(line);
+      out.println("<H4><font color =\"Green\"> This part of the output produced by the second servlet.. </H4>");
+      out.println("</BODY></HTML>");
+      out.close();
+    }
+  }
+
+  //
+  public class HTMLFormHandlerRedirect extends HTMLFormHandler {
+
+    public void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+      res.setContentType("text/html");
+      PrintWriter out = res.getWriter();
+      out.println("<HTML><TITLE>HTMLFormHandlerRedirect</TITLE><BODY>");
+      out.println(" <H2>Servlet ApI Example -
+                  HTMLFormHandlerRedirect</H2><HR>");
+
+      out.println("Hi <B>" + req.getParameter("firstname") + "</B><P>");
+      String title = req.getParameter("title");
+      if(title.equals("Web Architect"))
+        res.sendError(res.SC_BAD_REQUEST, "Sorry, but Web architects can't
+        see the page");
+
+      else.res.sendRedirect("HTMLFormHandlerRedirect.html");
+      out.println("And have worked with the following tools: <BR>");
+      out.println("</BODY></HTML>");
+    }
+  }
+  //
+
+  public class HTMLFormHandlerDispatcher1 extends HTMLServlet {
+
+    public void service(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+      RequestDispatcher rd = getServletContext()
+          .getRequestDispatcher("/servlet/itso.servjsp.servletapi.DispatcherForward");
+
+      rd.forward(req, res);
+    }
+  }
+
+  //
+  public class DisparcherForward extends HttpServlet {
+
+    public void service(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+      res.setContentType("text/html");
+      PrintWriter out = res.getWriter();
+      out.println("<HTML><BODY>Start of FORWARDED request");
+      out.println("<P>Hi " + req.getParameter("firstname"));
+      out.println("<BR>I see you are a " + req.getParameter("title"));
+      out.println("<P>End of request</BODY></HTML>");
+    }
+  }
+
+  //
+  public class HTMLFormHandlerDispatcher2 extends HttpServlet {
+
+    public void service(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+      res.setContentType("text/html");
+      PrintWriter out = res.getWriter();
+      out.println("<HTML><BODY>Start of INCLUDED request");
+      out.println("<P>Hi " + req.getParameter("firstname"));
+      out.flush();
+      RequestDispatcher rd = getServletContext()
+          .getRequestDispatcher("/servlet/itso.servjsp.servletapi.DispatcherInclude");
+
+      rd.include(req, res);
+      out.println("<P>End of request</BODY></HTML>");
+    }
+  }
+
+  //
+  public class DispatcherInclude extends HttpServlet {
+
+    public void servlet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+      PrintWriter out = res.getWriter();
+      out.println("<HR> I see you are a " + req.getParameter("title"));
+      out.println("<P>End of include<HR>");
+    }
+
+  }
+
+  //
+
+  public class ResourceHandler extends HttpFormHandler {
+
+    public void service(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+
+      res.setContentType("text/html");
+      PrintWriter out = res.getWriter();
+      out.println("<HTML><TITLE>HTMLFormHandlerResource</TITLE><BODY>");
+      out.println("<H2>Servlet API Example - HTMLFormHandlerResource</H2><HR>");
+
+      ServletContext sc = getServletContext();
+
+      URL url = sc.getResource("HTMLFormHandlerRedirect.html");
+      out.println("URL name: " + url.getFile());
+      out.println("<HR> Now the input file html: ");
+      BufferReader in = new BufferReader(new InputStreamReader(sc.getResourceAsStream("ResourceHandlerHTML.html")));
+      String str;
+      while ((str = in.readLine()) != null) {
+        out.println(str);
+        in.close();
+        out.println("<HR></BODY></HTML>");
+      }
+    }
+
+    //
+    public class UserSessionCounterSetter extends HttpServlet {
+      private int calledCount;
+
+      public void init(ServletConfig config) throws ServletException {
+        super.init(config);
+        calledCount = 0;
+
+      }
+
+      public void doGet(HttpServletRequest req, HttpServletResponse res) 
+      throws ServletException, IOException {
+
+        res.setContentType("TEXT/HTML");
+        PrintWriter out = res.getWriter();
+
+        HttpSession session = req.getSession(true);
+        if(session.isNew()||session.getValue("usersession")==null) {
+          session.putValue("usersession", new SaveServletStats());
+
+          }
+
+        SaveServletStats ustats = 
+          (SaveServletStats)session.getValue("usersession");
+
+        calledCount++;
+        ustats.calledCount++;
+
+        out.println("<HTML><TITLE>SessionCounter</TITLE><BODY>");
+        out.println("<H4>This servlet has been called: </H4><BR>");
+        out.println("<B>" + calledCount + </B>times since the servlet was loaded
+          THIS servlet life-cycle session</BR>");
+        out.println("<B>"+ ustats.calledCount+"</B>"times since the servlet was loaded
+          by this user<Br>");
+        out.println("</BODY></HTML>");
+        out.close();
+      }
+    }
+
+    //
+    public class UserSessionCounterGetter extends HttpServlet {
+
+      public void doGet(HttpServletRequest req, HttpServletResponse res)
+      throws ServletException, IOException {
+
+        res.setContentType("TEXT/HTML");
+        PrintWriter out = res.getWriter();
+        HttpSession session = req.getSession(true);
+        if(session.isNew()||session.getValue("usersession")==null) {
+          session.putValue("usersession", new SaveServletStats());
+        }
+        SaveServletStats ustats =
+          (SaveServletStats)session.getValue("usersession");
+
+        out.println("<HTML><TITLE>SessionCounter</TITLE><BODY>");
+
+        out.println("<H4>SessionCounter - UserSessionCounterGetter
+                    servlet</H4>");
+        out.println("<B>" + ustats.calledCount + "</B> times since the 
+                  UserSessionCounterGetter servlet was loaded by this user<BR>");
+        out.println("</BODY></HTML>");
+      }
+
+    }
+
+    //
+    public class ContextSetAttribute extends HttpServlet {
+
+      protected void service(HttpSerlvetRequest req, HttpServletResponse res)
+              throws ServletException, IOException {
+
+                res.setContentType("text/html");
+                PrintWriter out = res.getWriter();
+                out.println("<HTML><TITLE>SetContextAttribute</TITLE><BODY>");
+                out.println("<H4>ServletContext  example - Attribute Setter</H4><HR>");
+        ServletContext sc = getServletContext();
+                int calledCount = 0;
+                if(sc.getAttribute("calledCount")==null) {
+                  Integer tempCount = (Integer)sc.getAttribute("calledCount");
+                  calledCount = tempCount.intValue();
+    }
+                out.println("ServletContext, server info: " + sc.getServerInfo()+
+                           "<BR>");
+                out.println("ServletContext, real path: " + sc.getRealPath("")+"<BR>");
+                out.println("The attribute 'calledCount' value we retrieved: " + calledCount" + "<BR>");
+
+                calledCount++;
+                sc.setAttribute("calledCount", new Integer(calledCount));
+                out.println("We set the ServletContext attribute 'calledCount' to: " + sc.getAttribute("calledCount"));
+                out.println("</BODY><HTMl>");
+              }
+    }
+    //
+
+    public class ContextGetAttribute extends HttpServlet {
+
+      protected void service(HttpSerlvetRequest req, HttpServletResponse res)
+      throws ServletException, IOException {
+
+        res.setContentType("text/html");
+        PrintWriter out = res.getWriter();
+        out.println("<HTML><TITLE>SetContextAttribute</TITLE><BODY>");
+        out.println("<H4>ServletContext  example - Attribute Getter</H4><HR>");
+ServletContext sc = getServletContext();
+        int calledCount = 0;
+        if(sc.getAttribute("calledCount")==null) {
+          Integer tempCount = (Integer)sc.getAttribute("calledCount");
+          calledCount = tempCount.intValue();
+        }
+        out.println("The attribute 'calledCount' value we retrieved: " + 
+                    calledCount" + "<BR>");
+        out.println("</BODY><HTMl>");
+        out.close();
+      }
+    }
+
+    //
+    public class DateDisplayServlet extends HttpServlet {
+
+      public void doPost(HttpServletRequest req, HttpServletResponse resp)
+          throws javax.servlet.ServletException, java.io.IOException {
+
+        resp.sendRedirect("/DateDisplay.jsp");
+
+      }
+
+      //
+      public class DateDisplayBean {
+        private int counter = 0;
+        private String dateString = null;
+
+        public DateDisplayBean() {
+          super();
+          dateString = buildDateString(new GregorianCalendar());
+          counter = 0;
+
+        }
+
+        public String buildDateString(GregorianCalendar gcalendar) {
+          StringBuffer dateStr = new StringBuffer();
+          dateStr.append(gcalendar.get(Calendar.DATE));
+          dateStr.append("/");
+          dateStr.append(gcalendar.get(Calendar.MONTH) + 1);
+          dateStr.append("/");
+          daterStr.append(gcalendar.get(Calendar.YEAR));
+          return dateStr.toString();
+        }
+
+        public int getCounter() {
+          return counter;
+        }
+
+        public void setCounter(int newCounter) {
+          counter = newCounter;
+        }
+
+        public java.lang.String getDateString() {
+          counter++;
+          return dateString;
+        }
+      }
+
+      //
+      public class VectorBean {
+        java.util.Vector cdList = new java.util.Vector();
+
+        public VectorBean() {
+
+          cdList.addElement(new String[] { "Woman In Me", "Shania Twain" });
+          cdList.addElement(new String[] { "Come On Over", "Shania Twain" });
+          cdList.addElement(new String[] { "When I Call Your Name", "Vince Gill" });
+        }
+
+        public String getArtist(int ix) {
+          try {
+            return (String[]) cdList.elementAt(ix)[1];
+          } catch (Exception e) {
+            throw new ArrayIndexOutOfBoundsException();
+          }
+
+        }
+
+        public String getTitle(int ix){
+          try{return((String[]) cdList.elementAt(ix)[0];}
+          catch(Exception e) {throw new ArrayIndexOutOfBoundsException();}
+        }
+      }
+      //
+
+      protected void service(HttpServletRequest req, HttpServletResponse res)
+      throws ServletException, IOException {
+
+        res.setContentType("text/html");
+        PrintWriter out = res.getWriter();
+        out.println("<HTML><TITLE>SimpleHttpServlet</TITLE><BODY>");
+        out.println("<H2>Servlet API Example - SimpleHttpServlet</H2><HR>")
+          out.println("<H4>This is about as simple a servlet as it gets!</H4>");
+        out.println("</BODY>
+                    <HTML>");
+        out.close();
+      }
+
+      //
+      public class SimpleServlet extends HttpServlet {
+
+      }
+      //
+
+      public class SimpleHttpServlet extends HttpServlet {
+      }
+
+      // public SimpleServlet constructor comment
+
+      public SimpleHttpServlet(){
+        super();
+      }
+
+      protected void service(HttpServletRequest req, HttpServletResponse res)
+          throws ServletException, IOException {
+        res.setContentType("text/html");
+        PrintWriter out = res.getWriter();
+
+        out.println("<HTML><TITLE>SimpleHttpServlet</TITLE><BODY>");
+        out.println("<H2>Servlet API Example - SimpleHttpServlet</H2><HR>");
+        out.println("<H4>This is about as simple a servlet as it gets!</H4>");
+        out.println("</BODY><HTML>");
+        out.close();
+      }
+
+      //
+      SELECT
+      USERID.EMPLOYEE.FIRSTNME,USERID.EMPLOYEE.LASTNAME,USERTID.DEPARTMENT.DEPTNAME,
+      USERID.DEPARTMENT.DEPTNO
+
+      FROM USERID.DEPARTMENT,
+
+      USERID.EMPLOYEE
+
+      WHERE
+      (
+(
+        USERID.DEPARTMENT.DEPTNO = USERID.EMPLOYEE.WORKDEPT
+)
+      AND
+        ((
+                    USERID.DEPARTMENT.DEPTNO = USERID.EMPLOYEE.WORKDEPT
+          
+        )
+        AND
+        
+      ((
+        USERID.EMPLOYEE.EDLEVEL > 12
+       )
+         AND
+      (
+         USERID.EMPLOYEE.SEX = ?
+        
+      ))
+         )
+         ORDER BY
+         USERID.DEPARTMENT.DEPTNAME,
+        USERID.EMPLOYEE.LASTNAME
+
+        //
+
+      public void preformTask(HttpSerlvetRequest request, HttpServletResponse response) {
+        try {
+          itso.servjsp.jspsamples.DateDisplayBean dateDisplayBean = null;
+          dateDisplayBean = (ifso.servjsp.jspsamples.DateDisplayBean) java.beans.Beans.instantiate(
+              getClass().getClassLoader(),
+              "itso.servjsp.jspsamples.DateDisplayBean");
+
+          setRequestAttribute("dateDisplayBean", dateDisplayBean, request);
+
+          dateDisplayBean.setCounter(Integer.valueOf(
+              getParameter(request, " counter", true, true, null)).intValue());
+
+          dateDisplayBean.toString();
+
+          callPage(getPagenameFromRequest(request), request, response);
+        } catch (Throwable theException) {
+          handlerError(request, response, theException);
+
+        }
+      }
+
+      //
+
+      public void init(ServletConfig srvCfg) throws ServletException {
+        super.init(srvCfg);
+      }
+
+      public void service(HttpServletRequest req, HttpServletResponse res)
+      throws ServletException, IOException {
+
+        res.setContentType("text/html");
+        PrintWriter out = res.getWriter();
+        out.println("<HTML><TITLE>ServletEnvirontment</TITLE><BODY>");
+        out.println("<H2>Servlet API Example - 
+                    ServletEnvrionment</H2><HR>");
+
+        getReqInfo(req, out);
+        getReHeaderNames(req, out);
+        getReqParmValues(req, out);
+        getReqCookies(req, out);
+        getReqAttributeNames(req, out);
+        getInitParm(req, out);
+        getHttpSessionInfo(req, out);
+        getServletContextAttribute(req, out);
+
+        out.println("</BODY></HTML>");
+        out.close();
+      }
+      //
+
+      public void getReqInfo(HttpServletRequest req, PrintWriter out)
+      throws ServerCloneException ,IOException{
+          out.println("<H4>Basic Request Information</H4>"");
+          out.println("<B>Request method: </B>" + req.getMethod() + "<BR>");
+        out.println("<B>Request URI:</B> " + req.getRequestURI() + "<BR>");
+        out.println("<B>Request protocol:</B> " + req.getProtocol() + "<BR>");
+        out.println("<B>Request scheme:</B> " + req.getScheme() + "<BR>");
+        out.println("<B>Servlet path:</B> " + req.getServletPath() + "<BR>");
+        out.println("<B>Servlet name:</B> " + req.getServerName() + "<BR>");
+        out.println("<B>Servlet port:</B> " + req.getServerPort() + "<BR>");
+        out.println("<B>Path info:</B> " + req.getPathInfo() + "<BR>");
+        out.println("<B>Path translated:</B> "+req.getPathTranslated()+"<BR>");
+        out.println("<B>Character encoding:</B>"
+        + req.getCharacterEncoding()+"<BR>");
+        out.println("<B>Query string:</B> " + req.getQueryString() + "<BR>");
+        out.println("<B>Content length:</B> " + req.getContentLength() + "<BR>");
+        out.println("<B>Content type:</B> " + req.getContentType() + "<BR>");
+        out.println("<B>Remote user:</B> " + req.getRemoteUser() + "<BR>");
+        out.println("<B>Remote address:</B> " + req.getRemoteAddr() + "<BR>");
+        out.println("<B>Remote host:</B> " + req.getRemoteHost() + "<BR>");
+        out.println("<B>Authorization scheme:</B> "+req.getAuthType()+"<BR>");
+        out.println("<HR>");
+        }
+
+      public void getReHeaderNames(HttpServletRequest req, PrintWriter out){
+        Enumearation e = req.getHeaderNames();
+        out.println("<H4>Request Header Information</H4>");
+        out.println("This is information passed in on the request header
+                    (http)<P>");
+        if(e.hasMoreElements()){
+          while(e.hasMoreElements()){
+            String name = (String) e.nextElement();
+            out.println("<B>"+name+":</B> " + req.getHeader(name) + "<BR>");
+            
+      }
+        
+      }
+
+        else out.println("There are no request headers");
+        out.println("<HR>");
+      }
+
+      public void getReqParmValues(HttpServletRequest req, PrintWriter out){
+        out.println("<H4>Request Parameter Names/Values</H4>");
+        out.println("Contains the name/value pairs of the information sent in on
+                    the request<P>");
+        Enumeration e = req.getParameterNames();
+        if(e.hasMoreElements()){
+          out.println("<H4><B>Servlet parameters
+                      (Single Value style):</B></H4>"); 
+          while (e.hasMoreElements()){
+            String name = (String) e.nextElement();
+            out.println("<B>"+name+": </B>"+ req.getParameter(name) + "<BR>");
+          }
+        }
+        else out.println("<BR>No request parameters");
+        e = req.getParameterNames();
+        if(e.hasMoreElements()){
+          out.println("<H4><B>Servlet parameters 
+                      (Multiple Value style):</B></H1>");
+          while(e.hasMoreElements()){
+            String name = (String) e.nextElement();
+String vals[] = (String[]) req.getParameterValues(name);
+            if(vals != null){
+              out.print("<B>" + name + ": </B>");
+              out.println(vals[0]);
+              for(int i = 1; i < vals.length; i++)
+                out.println(" " + vals[i]);
+            }
+            out.println("<BR>");
+          }
+        }
+        out.println("<HR>");
+      }
+
+      public void getReqAttributeName(HttpServletRequest req, PrintWriter out) {
+        Enumeration e = req.getAttributeNames();
+        out.println("<H4>Request Attribute Information</H4>");
+        if (e.hasMoreElements()) {
+          while (e.hasMoreElements()) {
+            String name = (String) e.nextElement();
+            out.println("<B>" + name + ": </B>" + req.getAttribute(name) + "<BR>");
+          }
+        } else
+          out.println("There are no request attributes");
+        out.println("<HR>");
+      }
+
+      public void getReqCookies(HttpServletRequest req, PrintWriter out){
+        out.println("<H4>Cookies Information</H4>")
+          out.println("These are the cookies passed in on the request.
+                      Will be null if client cookies disable<P>");
+        Cookie[] cookies = req.getCookies();
+        if(cookies != null&& cookies.length > 0){
+          out.println("<H4><B>Client cookies</B></H4>");
+          for(int i =0; i<cookies.length; i++){
+            out.println("<B>" + cookies[i].getName()+ ": </B>"+
+                       cookiest[i].getValue() + "<BR>");
+          }
+        }
+        else out.println("Cookies are null");
+        out.println("<HR>");
+      }
+
+      public void getInitParms(HttpServletRequest req, PrintWriter out){
+        Enumeration e= getServletConfig().getInitParameterNames();
+        out.println("<H4>ServletConfig Initialization Information</H4>");
+        out.println("This is basic information retrieved from the ServletConfig
+                    file<BR>");
+
+      out.println("(usually BigRequestHandler.servlet, if exist)<P>");
+if(e != null){
+  while(e.hasMoreElements()){
+    String param = (String)e.nextElement();
+    out.println("<B>" + param + ": </B>" + getInitParameter(param)+"<BR>");
+}
+}
+else out.println("ServletConfig is null");
+out.println("<HR>");
+}
+
+public void getHttpSessionInfo(HttpServletRequest req, PrintWriter out){
+  HttpSession session = req.getSession(false);
+  out.println("<H4>HttpSession information</H4>");
+  out.println("Will be null if session information is not utilized<P>");
+  if(session != null){
+    out.println("<B>Session ID: </B>" + session.getId() + "<BR>");
+    out.println("<B>Requested Session ID: </B>" +
+                req.getRequestedSessionId + "<BR>");
+    out.println("<B> Last access time: </B>"+
+                        new Date(session.getLastAccessedTime()) + "<BR>");
+    out.println("<B>Creation time: </B>" + 
+                new Date(session.getCreationTime()) + "<BR>");
+
+    String mechanism = "unknown";
+    if(req.isRequestedSessionIdFromCookie()){
+      mechanisme = "cookie";
+    }
+    else if (req.isRequestedSessionIdFromURL()){
+      mechanism = "url-encoding";
+    }
+    out.println("<B> Session-traking mechanism: </B>" + mechanism + "<BR>");
+    String[] vals = session.getValueNames();
+    if(vals != null){
+      out.println("<B>Session-traking mechanism: </B>" + mechanism+
+                 "<BR>");
+      String[] vals = session.getValueNames();
+      if(vals != null){
+        out.println("<B>Session values: </B><BR>");
+        for(int i = 0; i < vals.length; i++){
+          String name = vals[i];
+          out.println("<B>" + name + ": </B>" + session.getValue(name) + "<BR>");
+        }
+      }
+    }
+    else.out.println("Session object is null");
+    out.println("<HR>");
+  }
+
+//
+  public void getServletContextAttribute(HttpServletRequest req, PrintWriter out){
+
+    Enumaration e = getServletContext().getAttributeNames();
+    out.println("<H4>Servlet infomation about the environment the servlet is
+                running under<P>");
+    if(e.hasMoreElements()){
+      while(e.hasMoreElements()){
+        String name = (String) e.nextElement();
+        out.println("<B>" + name + ": </B>" + 
+                    getServletContext().getAttribute(name) + "<BR>");
+      }
+    }
+    out.println("<HR>");
+  }
+  
